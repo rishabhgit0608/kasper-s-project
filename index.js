@@ -19,6 +19,8 @@ const users = {
   user1: 'user1_password',
 };
 
+app.use(express.json()); // Add this line to parse JSON bodies
+
 // Authentication route (handles login requests)
 app.post('/login', (req, res) => {
   const { username, password, role } = req.body;
