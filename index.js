@@ -15,17 +15,23 @@ const io = new Server(server, {
 
 // Basic Authentication (Replace with a database in production)
 const users = {
-  therapist: 'therapist_password',
   user1: 'user1_password',
 };
+
+const therapists = {
+  therapist: 'therapist_password',
+}
 
 app.use(express.json()); // Add this line to parse JSON bodies
 
 // Authentication route (handles login requests)
 app.post('/login', (req, res) => {
   const { username, password, role } = req.body;
-
-  if (!(username in users) || users[username] !== password) {
+  let data;
+  if(role === "user") data = users;
+  else if (role === "therapist") data = therapists;
+  else return res.status(401).send('Invalid credentials');
+  if (!(username in data) || data[username] !== password) {
     return res.status(401).send('Invalid credentials');
   }
 
