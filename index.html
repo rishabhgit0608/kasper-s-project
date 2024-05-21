@@ -1,37 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat APP</title>
-  </head>
-  <body>
-    <h1>Chatting</h1>
 
-    <input type="text" id="message" placeholder="Enter Message" />
-    <button id="sendBtn">Send</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+  
+    .container {
+      text-align: center;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+  
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+  
+    input[type="text"],
+    input[type="password"],
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+  
+    button {
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+  
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+  
+</head>
 
-    <div id="messages"></div>
+<body>
+  <h1>Login</h1>
+  <input type="text" id="username" placeholder="Enter Username" />
+  <input type="password" id="password" placeholder="Enter Password" />
+  <button id="userLogin">Login as User</button>
+  <button id="therapistLogin">Login as Therapist</button>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-      const sendBtn = document.getElementById("sendBtn");
-      const messageInput = document.getElementById("message");
-      const allMessages = document.getElementById("messages");
+  <script>
+    function login(role) {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
 
-      socket.on("message", (message) => {
-        const p = document.createElement("p");
-        p.innerText = message;
-        allMessages.appendChild(p);
-      });
+      if (username && password) {
+        fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password, role }) // Send credentials in body
+        })
+          .then(response => {
+            if (response.ok) {
+              window.location.href = `/chat.html?role=${role}&username=${username}`;
+            } else {
+              alert('Invalid credentials');
+            }
+          })
+          .catch(error => console.error('Login error:', error));
+      }
+    }
 
-      sendBtn.addEventListener("click", (e) => {
-        const message = messageInput.value;
-        console.log(message);
-        socket.emit("user-message", message);
-      });
-    </script>
-  </body>
+    document.getElementById("userLogin").addEventListener("click", () => {
+      login("user");
+    });
+
+    document.getElementById("therapistLogin").addEventListener("click", () => {
+      login("therapist");
+    });
+  </script>
+</body>
+
 </html>
