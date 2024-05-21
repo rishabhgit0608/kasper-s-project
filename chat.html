@@ -8,20 +8,24 @@
   <title>Chat APP</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
       margin: 0;
       padding: 0;
     }
 
     .container {
       max-width: 600px;
-      margin: 0 auto;
+      width: 100%;
       padding: 20px;
       background-color: #fff;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      margin-top: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
@@ -30,9 +34,32 @@
       text-align: center;
     }
 
+    #messages {
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      min-height: 300px;
+      margin-bottom: 20px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    #messages p {
+      margin: 5px 0;
+      padding: 8px 12px;
+      border-radius: 4px;
+      word-wrap: break-word;
+    }
+
+    #messages .user-message {
+      background-color: #e9e9e9;
+      margin-left: auto;
+      text-align: right;
+    }
+
     form {
       display: flex;
-      margin-bottom: 20px;
+      align-items: center;
     }
 
     input[type="text"] {
@@ -42,6 +69,7 @@
       border-radius: 4px;
       box-sizing: border-box;
       font-size: 16px;
+      margin-right: 10px;
     }
 
     button {
@@ -57,57 +85,65 @@
     button:hover {
       background-color: #0056b3;
     }
-
-    #messages {
-      padding: 20px;
-      background-color: #f9f9f9;
-      border-radius: 8px;
-      min-height: 300px;
-      overflow-y: auto;
-    }
-
-    #messages p {
-      margin: 5px 0;
-    }
   </style>
-
 </head>
 
 <body>
   <h1 id="roleHeading">Chatting</h1>
-  <form action="javascript:void(0);">
-    <input type="text" id="message" placeholder="Enter Message" />
-    <button id="sendBtn">Send</button>
-  </form>
-  <div id="messages"></div>
+  <div class="container">
+    <div id="messages"></div>
+    <form action="javascript:void(0);">
+      <input type="text" id="message" placeholder="Enter Message" />
+      <button id="sendBtn">Send</button>
+    </form>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
-    const sendBtn = document.getElementById("sendBtn");
-    const messageInput = document.getElementById("message");
-    const allMessages = document.getElementById("messages");
+    const socket = io('http://localhost:9000'); // Connect to server
+    const sendBtn = document.getElementById('sendBtn');
+    const messageInput = document.getElementById('message');
+    const allMessages = document.getElementById('messages');
     const urlParams = new URLSearchParams(window.location.search);
-    const role = urlParams.get("role");
-    const username = urlParams.get("username");
+    const role = urlParams.get('role');
+    const username = urlParams.get('username');
 
-    document.getElementById("roleHeading").innerText = `Chatting as ${role} (${username})`;
+    document.getElementById('roleHeading').innerText = `Chatting as ${role} (${username})`;
 
-    // Emit "join" event on connection
-    socket.emit("join", { role: role, username: username });
+    let lastSender = null;
 
-    socket.on("message", (message) => {
-      const p = document.createElement("p");
-      p.innerText = message;
+    socket.on('connect', () => {
+      socket.emit('join', { role, username });
+    });
+
+    socket.on('connected', (data) => {
+      const p = document.createElement('p');
+      p.innerText = data.message;
       allMessages.appendChild(p);
     });
 
-    sendBtn.addEventListener("click", () => {
-      const message = `${username}: ${messageInput.value}`;
-      console.log(message);
-      socket.emit("user-message", message);
-      messageInput.value = "";
+    socket.on('message', (message) => {
+      const sender = message.split(':')[0];
+      const msgContent = message.split(':')[1];
+      const p = document.createElement('p');
+      p.innerText = message;
+      if (sender !== username) {
+        p.classList.add('user-message');
+      }
+      allMessages.appendChild(p);
+      scrollToBottom();
     });
+
+    sendBtn.addEventListener('click', () => {
+      const message = `${username}: ${messageInput.value}`;
+      socket.emit('user-message', message);
+      messageInput.value = '';
+    });
+
+    function scrollToBottom() {
+      allMessages.scrollTop = allMessages.scrollHeight;
+    }
+
   </script>
 </body>
 
