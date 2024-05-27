@@ -1,4 +1,4 @@
-const http = require('http');
+const http = require('http'); // server
 const express = require('express');
 const path = require('path');
 const { Server } = require('socket.io');
@@ -16,6 +16,7 @@ const io = new Server(server, {
 // Basic Authentication (Replace with a database in production)
 const users = {
   user1: 'user1_password',
+  tushar: "tugpass"
 };
 
 const therapists = {
@@ -34,7 +35,15 @@ app.post('/login', (req, res) => {
   if (!(username in data) || data[username] !== password) {
     return res.status(401).send('Invalid credentials');
   }
+  res.sendStatus(200); // Send 200 OK on successful login
+});
 
+app.post('/signup', (req, res) => {
+  const { username, password, role } = req.body;
+  let data;
+  if(role === "user" && !users[username]) users.push({username: password});
+  else if (role === "therapist" && !therapists[username]) therapists.push({username: password});
+  else return res.status(401).send('User already there.');
   res.sendStatus(200); // Send 200 OK on successful login
 });
 
